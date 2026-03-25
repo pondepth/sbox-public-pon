@@ -700,12 +700,7 @@ public abstract class SelectionTool<T>( MeshTool tool ) : SelectionTool where T 
 		if ( IsBoxSelecting || IsLassoSelecting )
 			return default;
 
-		var result = MeshTrace.Run();
-		if ( !result.Hit || result.Component is not MeshComponent component )
-			return default;
-
-		var face = component.Mesh.TriangleToFace( result.Triangle );
-		return new MeshFace( component, face );
+		return MeshTrace.TraceFace();
 	}
 
 	public static Vector3 ComputeTextureVAxis( Vector3 normal ) => FaceDownVectors[GetOrientationForPlane( normal )];

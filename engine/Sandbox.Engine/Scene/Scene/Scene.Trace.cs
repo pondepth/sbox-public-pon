@@ -34,10 +34,14 @@ public partial class Scene : GameObject
 		{
 			var mt = Engine.Utility.RayTrace.MeshTraceRequest.From( trace.PhysicsTrace.request, SceneWorld, trace.CullMode );
 			mt.filterCallback = trace.NeedsFilterCallback ? trace.FilterCallback : default;
-			var meshTraceResult = mt.Run();
-			if ( meshTraceResult.Hit )
+			var meshTraceResults = mt.RunAll();
+
+			foreach ( var meshTraceResult in meshTraceResults )
 			{
-				results.Add( SceneTraceResult.From( this, meshTraceResult ) );
+				if ( meshTraceResult.Hit )
+				{
+					results.Add( SceneTraceResult.From( this, meshTraceResult ) );
+				}
 			}
 		}
 
