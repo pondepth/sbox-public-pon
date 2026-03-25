@@ -17,8 +17,14 @@ namespace Sandbox;
 /// </summary>
 public static partial class Networking
 {
-	internal const int MaxIncomingMessages = 32;
+	internal const int ReceiveBatchSize = 32;
 	internal static NetworkSystem System;
+
+	[ConVar( "net_max_outgoing", ConVarFlags.Protected, Help = "Maximum outgoing messages to send per tick. 0 = unlimited." )]
+	internal static int MaxOutgoingMessagesPerTick { get; set; } = 1024;
+
+	[ConVar( "net_max_incoming", ConVarFlags.Protected, Help = "Maximum incoming messages to receive per tick. 0 = unlimited." )]
+	internal static int ReceiveBatchSizePerTick { get; set; } = 1024;
 
 	internal static Dictionary<string, string> ServerData { get; set; } = new();
 
