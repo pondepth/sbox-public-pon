@@ -121,6 +121,7 @@ public class NavigationHost : Panel
 		if ( url == CurrentUrl )
 		{
 			ApplyQuery( query );
+			RunNavigatedEvent();
 			return Current?.Panel;
 		}
 

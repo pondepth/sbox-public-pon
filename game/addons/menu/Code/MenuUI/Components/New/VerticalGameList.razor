@@ -22,7 +22,7 @@
         {
             @foreach (var item in Result.Packages.OrderByDescending( x => x.Usage.UsersNow ))
             {
-                <GameCard class="list" Package=@(item) />
+                <GameCardList Package=@(item) />
             }
         }
     </div>

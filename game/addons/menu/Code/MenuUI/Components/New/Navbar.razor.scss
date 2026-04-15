@@ -17,7 +17,6 @@ Navbar {
 		padding: 16px 50px;
 		max-width: $screen-w-xl;
 		justify-content: space-between;
-		position: relative;
 	}
 
 	&::before {
@@ -123,11 +122,13 @@ Navbar {
 	.links {
 		align-items: center;
 		gap: 16px;
+		z-index: -10;
 	}
 
 	.right {
 		gap: 16px;
 		align-items: center;
+		z-index: -10;
 	}
 
 	separator.vertical {

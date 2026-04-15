@@ -26,22 +26,38 @@ GameCard {
     }
 
     &.list {
-        width: 400px;
+        flex-grow: 1;
         height: 64px;
+        flex-direction: row;
+        gap: 12px;
 
         .inner column {
             flex-grow: 1;
         }
 
         .image {
-            height: 64px;
+            height: 100%;
             aspect-ratio: 1;
-            mask: linear-gradient( to right, white, black );
+            flex-grow: 0;
+            flex-shrink: 0;
+            flex-grow: 0;
         }
 
         column {
             gap: 3px;
             justify-content: center;
+        }
+
+        .package-title {
+            flex-shrink: 0;
+            max-width: 500px;
+        }
+
+        .package-users {
+            position: absolute;
+            top: 1px;
+            right: 713px;
+            text-align: right;
         }
     }
 
@@ -86,11 +102,13 @@ GameCard {
         font-size: 14px;
     }
 
-    .package-users {
-        position: absolute;
-        top: 4px;
-        right: 3px;
-        transition: all 150ms ease;
+    &:not(.list) {
+        .package-users {
+            position: absolute;
+            top: 4px;
+            right: 3px;
+            transition: all 150ms ease;
+        }
     }
 
     .image {
