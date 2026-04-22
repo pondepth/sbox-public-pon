@@ -123,7 +123,7 @@ class FolderNode : TreeNode<LocalAssetBrowser.Location>
 
 	public override DropAction OnDragDrop( BaseItemWidget.ItemDragEvent e )
 	{
-		var dropAction = e.HasCtrl ? DropAction.Copy : DropAction.Move;
+		var dropAction = e.HasCtrl ? DropAction.Move : DropAction.Copy;
 		if ( !e.IsDrop ) return dropAction;
 
 		foreach ( var file in e.Data.Files )
@@ -140,9 +140,14 @@ class FolderNode : TreeNode<LocalAssetBrowser.Location>
 
 				if ( System.IO.Directory.Exists( file ) )
 				{
-					// Move Directory
-					EditorUtility.RenameDirectory( file, destinationFile );
-					DirectoryEntry.RenameMetadata( file, destinationFile );
+					if ( dropAction == DropAction.Copy )
+						DroppedAssetRegistration.CopyDirectory( file, destinationFile );
+					else
+					{
+						EditorUtility.RenameDirectory( file, destinationFile );
+						DirectoryEntry.RenameMetadata( file, destinationFile );
+					}
+
 					DroppedAssetRegistration.Register( destinationFile );
 				}
 				else
@@ -192,6 +197,24 @@ static class DroppedAssetRegistration
 		foreach ( var file in System.IO.Directory.EnumerateFiles( path, "*", SearchOption.AllDirectories ) )
 		{
 			RegisterFile( file );
+		}
+	}
+
+	public static void CopyDirectory( string source, string destination )
+	{
+		if ( !System.IO.Directory.Exists( source ) )
+			return;
+
+		System.IO.Directory.CreateDirectory( destination );
+
+		foreach ( var file in System.IO.Directory.EnumerateFiles( source, "*", SearchOption.TopDirectoryOnly ) )
+		{
+			System.IO.File.Copy( file, System.IO.Path.Combine( destination, System.IO.Path.GetFileName( file ) ) );
+		}
+
+		foreach ( var directory in System.IO.Directory.EnumerateDirectories( source, "*", SearchOption.TopDirectoryOnly ) )
+		{
+			CopyDirectory( directory, System.IO.Path.Combine( destination, System.IO.Path.GetFileName( directory ) ) );
 		}
 	}
 

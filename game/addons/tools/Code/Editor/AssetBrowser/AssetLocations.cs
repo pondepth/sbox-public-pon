@@ -85,7 +85,7 @@ public class AssetLocations : TreeView
 	protected override void OnDragHoverItem( DragEvent ev, VirtualWidget item )
 	{
 		base.OnDragHoverItem( ev, item );
-		ev.Action = DropAction.Move;
+		ev.Action = ev.HasCtrl ? DropAction.Move : DropAction.Copy;
 	}
 
 	protected override void OnDropOnItem( DragEvent ev, VirtualWidget item )
@@ -108,9 +108,9 @@ public class AssetLocations : TreeView
 			if ( asset == null )
 				continue;
 
-			ev.Action = ev.HasCtrl ? DropAction.Copy : DropAction.Move;
+			ev.Action = ev.HasCtrl ? DropAction.Move : DropAction.Copy;
 
-			if ( ev.HasCtrl )
+			if ( ev.Action == DropAction.Copy )
 				EditorUtility.CopyAssetToDirectory( asset, directory );
 			else
 				EditorUtility.MoveAssetToDirectory( asset, directory );
