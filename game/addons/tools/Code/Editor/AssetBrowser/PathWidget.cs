@@ -327,6 +327,7 @@ public class PathWidget : Widget
 						// Move Directory
 						EditorUtility.RenameDirectory( file, destinationFile );
 						DirectoryEntry.RenameMetadata( file, destinationFile );
+						DroppedAssetRegistration.Register( destinationFile );
 					}
 					else
 					{
@@ -338,6 +339,8 @@ public class PathWidget : Widget
 							File.Copy( file, destinationFile );
 						else
 							File.Move( file, destinationFile );
+
+						DroppedAssetRegistration.Register( destinationFile );
 					}
 				}
 				else

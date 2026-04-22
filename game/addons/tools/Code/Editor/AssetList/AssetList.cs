@@ -711,6 +711,7 @@ public partial class AssetList : ListView, AssetSystem.IEventListener
 					// Move Directory
 					EditorUtility.RenameDirectory( file, destinationFile );
 					DirectoryEntry.RenameMetadata( file, destinationFile );
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 				else
 				{
@@ -720,6 +721,8 @@ public partial class AssetList : ListView, AssetSystem.IEventListener
 
 					if ( ev.HasCtrl ) System.IO.File.Copy( file, destinationFile );
 					else System.IO.File.Move( file, destinationFile );
+
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 			}
 			else

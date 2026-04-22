@@ -143,6 +143,7 @@ class FolderNode : TreeNode<LocalAssetBrowser.Location>
 					// Move Directory
 					EditorUtility.RenameDirectory( file, destinationFile );
 					DirectoryEntry.RenameMetadata( file, destinationFile );
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 				else
 				{
@@ -154,6 +155,8 @@ class FolderNode : TreeNode<LocalAssetBrowser.Location>
 						System.IO.File.Copy( file, destinationFile );
 					else
 						System.IO.File.Move( file, destinationFile );
+
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 			}
 			else
@@ -170,6 +173,38 @@ class FolderNode : TreeNode<LocalAssetBrowser.Location>
 		rootParent.Dirty();
 
 		return dropAction;
+	}
+}
+
+static class DroppedAssetRegistration
+{
+	public static void Register( string path )
+	{
+		if ( System.IO.File.Exists( path ) )
+		{
+			RegisterFile( path );
+			return;
+		}
+
+		if ( !System.IO.Directory.Exists( path ) )
+			return;
+
+		foreach ( var file in System.IO.Directory.EnumerateFiles( path, "*", SearchOption.AllDirectories ) )
+		{
+			RegisterFile( file );
+		}
+	}
+
+	private static void RegisterFile( string path )
+	{
+		var extension = System.IO.Path.GetExtension( path );
+		if ( string.IsNullOrWhiteSpace( extension ) )
+			return;
+
+		if ( extension.Equals( ".meta", StringComparison.OrdinalIgnoreCase ) )
+			return;
+
+		AssetSystem.RegisterFile( path );
 	}
 }
 

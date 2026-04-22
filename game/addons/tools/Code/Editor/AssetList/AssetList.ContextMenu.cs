@@ -204,6 +204,11 @@ public partial class AssetList
 		}
 
 		var selection = SelectedItems.OfType<AssetEntry>().ToList();
+		foreach ( var entry in selection )
+		{
+			entry.EnsureAssetRegistered();
+		}
+
 		var directories = SelectedItems.OfType<DirectoryEntry>().ToList();
 
 		if ( directories.Any() )
