@@ -22,6 +22,7 @@ public struct TerrainPaintParameters
 	public Vector3 HitPosition { get; set; }
 	public Vector2 HitUV { get; set; }
 	public float FlattenHeight { get; set; }
+	public float BrushRotation { get; set; }
 	public Brush Brush { get; set; }
 	public BrushSettings BrushSettings { get; set; }
 }
@@ -35,6 +36,7 @@ public abstract class BaseBrushTool : EditorTool
 	protected bool _dragging;
 	protected RectInt _dirtyRegion;
 	protected ushort[] _snapshot;
+	protected float _brushRotation;
 
 	/// <summary>
 	/// Which sculpting mode are we using right now?
@@ -59,6 +61,11 @@ public abstract class BaseBrushTool : EditorTool
 	public virtual bool GetHitPosition( Terrain terrain, out Vector3 position )
 	{
 		return terrain.RayIntersects( Gizmo.CurrentRay, Gizmo.RayDepth, out position );
+	}
+
+	protected virtual float GetBrushRotation()
+	{
+		return 0.0f;
 	}
 
 	public override void OnUpdate()
@@ -91,11 +98,14 @@ public abstract class BaseBrushTool : EditorTool
 
 			if ( shouldSculpt )
 			{
+				_brushRotation = GetBrushRotation();
+
 				TerrainPaintParameters parameters = new()
 				{
 					HitPosition = hitPosition,
 					HitUV = new Vector2( hitPosition.x, hitPosition.y ) / terrain.Storage.TerrainSize,
 					FlattenHeight = hitPosition.z / terrain.Storage.TerrainHeight,
+					BrushRotation = _brushRotation,
 					Brush = TerrainEditorTool.Brush,
 					BrushSettings = _parent.BrushSettings
 				};
@@ -111,7 +121,7 @@ public abstract class BaseBrushTool : EditorTool
 
 		// Draw brush preview at hit position
 		var previewTransform = new Transform( tx.PointToWorld( hitPosition ), tx.Rotation );
-		_parent.DrawBrushPreview( previewTransform );
+		_parent.DrawBrushPreview( previewTransform, _brushRotation );
 	}
 
 	protected virtual void OnPaintStart( Terrain terrain )
@@ -136,6 +146,7 @@ public abstract class BaseBrushTool : EditorTool
 
 		cs.Attributes.Set( "HeightUV", paint.HitUV );
 		cs.Attributes.Set( "FlattenHeight", paint.FlattenHeight );
+		cs.Attributes.Set( "BrushRotation", paint.BrushRotation );
 		cs.Attributes.Set( "BrushStrength", opacity ); ;
 		cs.Attributes.Set( "BrushSize", size );
 		cs.Attributes.Set( "Brush", paint.Brush.Texture );

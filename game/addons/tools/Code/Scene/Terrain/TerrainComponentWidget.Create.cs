@@ -94,7 +94,7 @@ partial class TerrainComponentWidget
 		BuildUI();
 	}
 
-	void LinkExistingTerrain()
+	async void LinkExistingTerrain()
 	{
 		var openLocation = EditorUtility.OpenFileDialog( $"Open Terrain", "terrain", $"{Project.Current.GetAssetsPath()}/" );
 		if ( openLocation is null ) return;
@@ -103,9 +103,17 @@ partial class TerrainComponentWidget
 		if ( !terrain.IsValid() ) return;
 
 		var asset = AssetSystem.FindByPath( openLocation );
-		if ( asset is null || !asset.TryLoadResource<TerrainStorage>( out var storage ) )
+		if ( asset is null )
 		{
-			Log.Error( "Fucked" );
+			Log.Error( $"Couldn't find terrain asset at '{openLocation}'." );
+			return;
+		}
+
+		await asset.CompileIfNeededAsync();
+
+		if ( !asset.TryLoadResource<TerrainStorage>( out var storage ) )
+		{
+			Log.Error( $"Couldn't load terrain storage resource from '{openLocation}'." );
 			return;
 		}
 

@@ -37,6 +37,7 @@ CS
     
     float2 HeightUV < Attribute( "HeightUV" ); >;
     float FlattenHeight < Attribute( "FlattenHeight" ); >;
+    float BrushRotation < Attribute( "BrushRotation" ); >;
     int BrushSize < Attribute( "BrushSize" ); >;
     float BrushStrength < Attribute( "BrushStrength" ); >;
 	Texture2D<float> Brush < Attribute( "Brush" ); >;
@@ -56,6 +57,15 @@ CS
         if ( texel.x < 0 || texel.y < 0 || texel.x >= w || texel.y >= h ) return;
 
         float2 brushUV = float2( vThreadId.xy ) / BrushSize;
+        if ( BrushRotation != 0.0f )
+        {
+            float s, c;
+            sincos( BrushRotation, s, c );
+            float2 centeredBrushUV = brushUV - 0.5f;
+            brushUV = float2(
+                centeredBrushUV.x * c - centeredBrushUV.y * s,
+                centeredBrushUV.x * s + centeredBrushUV.y * c ) + 0.5f;
+        }
 
         if ( D_SCULPT_MODE == MODE_RAISE_LOWER )
         {

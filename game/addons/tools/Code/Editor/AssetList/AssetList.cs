@@ -680,16 +680,16 @@ public partial class AssetList : ListView, AssetSystem.IEventListener
 			return;
 
 		if ( ev.HasCtrl )
-			ev.Action = DropAction.Copy;
-		else
 			ev.Action = DropAction.Move;
+		else
+			ev.Action = DropAction.Copy;
 	}
 
 	bool hasJustMoved = false;
 
 	private void OnDrop( DragEvent ev, string directory )
 	{
-		ev.Action = ev.HasCtrl ? DropAction.Copy : DropAction.Move;
+		ev.Action = ev.HasCtrl ? DropAction.Move : DropAction.Copy;
 		if ( ev.Action == DropAction.Move && Browser.ShowRecursiveFiles )
 			return;
 
@@ -708,9 +708,15 @@ public partial class AssetList : ListView, AssetSystem.IEventListener
 				if ( System.IO.Directory.Exists( file ) )
 				{
 					if ( Browser.CurrentLocation.Path == directory ) continue;
-					// Move Directory
-					EditorUtility.RenameDirectory( file, destinationFile );
-					DirectoryEntry.RenameMetadata( file, destinationFile );
+					if ( ev.Action == DropAction.Copy )
+						DroppedAssetRegistration.CopyDirectory( file, destinationFile );
+					else
+					{
+						EditorUtility.RenameDirectory( file, destinationFile );
+						DirectoryEntry.RenameMetadata( file, destinationFile );
+					}
+
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 				else
 				{
@@ -718,14 +724,16 @@ public partial class AssetList : ListView, AssetSystem.IEventListener
 					if ( System.IO.Path.GetFullPath( file ) == System.IO.Path.GetFullPath( destinationFile ) )
 						continue;
 
-					if ( ev.HasCtrl ) System.IO.File.Copy( file, destinationFile );
+					if ( ev.Action == DropAction.Copy ) System.IO.File.Copy( file, destinationFile );
 					else System.IO.File.Move( file, destinationFile );
+
+					DroppedAssetRegistration.Register( destinationFile );
 				}
 			}
 			else
 			{
 				if ( asset.IsDeleted ) continue;
-				if ( ev.HasCtrl ) EditorUtility.CopyAssetToDirectory( asset, directory );
+				if ( ev.Action == DropAction.Copy ) EditorUtility.CopyAssetToDirectory( asset, directory );
 				else EditorUtility.MoveAssetToDirectory( asset, directory );
 			}
 		}

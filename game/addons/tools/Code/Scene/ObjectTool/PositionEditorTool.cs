@@ -18,6 +18,8 @@ public class PositionEditorTool : EditorTool
 
 	Vector3 moveDelta;
 	Vector3 handlePosition;
+	BBox startBounds;
+	bool hasStartBounds;
 
 	IDisposable undoScope;
 
@@ -56,6 +58,7 @@ public class PositionEditorTool : EditorTool
 			startPoints.Clear();
 			moveDelta = default;
 			handlePosition = bbox.Center;
+			hasStartBounds = false;
 			undoScope?.Dispose();
 			undoScope = null;
 		}
@@ -70,10 +73,7 @@ public class PositionEditorTool : EditorTool
 
 				StartDrag( nonSceneGos );
 
-				var offset = (moveDelta + handlePosition) * handleRotation.Inverse;
-				offset = Gizmo.Snap( offset, moveDelta * handleRotation.Inverse );
-				offset *= handleRotation;
-				offset -= handlePosition;
+				var offset = GetMoveOffset( nonSceneGos, handleRotation );
 
 				foreach ( var entry in startPoints )
 				{
@@ -81,6 +81,131 @@ public class PositionEditorTool : EditorTool
 				}
 			}
 		}
+	}
+
+	private Vector3 GetMoveOffset( IEnumerable<GameObject> selectedGos, Rotation handleRotation )
+	{
+		if ( ShouldTrySurfaceSnap() && TryGetSurfaceSnapOffset( selectedGos, out var surfaceOffset ) )
+		{
+			return surfaceOffset;
+		}
+
+		if ( IsTemporarySurfaceSnap )
+		{
+			return moveDelta;
+		}
+
+		var offset = (moveDelta + handlePosition) * handleRotation.Inverse;
+		offset = Gizmo.Snap( offset, moveDelta * handleRotation.Inverse );
+		offset *= handleRotation;
+		offset -= handlePosition;
+
+		return offset;
+	}
+
+	private static bool IsTemporarySurfaceSnap => Gizmo.IsCtrlPressed && Gizmo.IsAltPressed;
+
+	private static bool ShouldTrySurfaceSnap() => SurfaceSnapSettings.Enabled || IsTemporarySurfaceSnap;
+
+	private bool TryGetSurfaceSnapOffset( IEnumerable<GameObject> selectedGos, out Vector3 offset )
+	{
+		var trace = Scene.Trace
+			.Ray( Gizmo.CurrentRay, Gizmo.RayDepth )
+			.UseRenderMeshes( true, EditorPreferences.BackfaceSelection )
+			.UsePhysicsWorld( false )
+			.WithoutTags( "trigger" );
+
+		foreach ( var go in selectedGos )
+		{
+			trace = trace.IgnoreGameObjectHierarchy( go );
+		}
+
+		if ( !TryGetBestSurfaceHit( trace.Run(), selectedGos, out var hitPosition, out var hitNormal ) )
+		{
+			offset = default;
+			return false;
+		}
+
+		offset = GetSurfaceSnapTarget( hitPosition, hitNormal ) - handlePosition;
+		return true;
+	}
+
+	private bool TryGetBestSurfaceHit( SceneTraceResult traceResult, IEnumerable<GameObject> selectedGos, out Vector3 hitPosition, out Vector3 hitNormal )
+	{
+		var bestDistance = float.MaxValue;
+		hitPosition = default;
+		hitNormal = default;
+
+		if ( traceResult.Hit )
+		{
+			bestDistance = traceResult.Distance;
+			hitPosition = traceResult.HitPosition;
+			hitNormal = traceResult.Normal;
+		}
+
+		var ignoredObjects = selectedGos.ToHashSet();
+		foreach ( var terrain in Scene.GetAllComponents<Terrain>() )
+		{
+			if ( !terrain.IsValid() || terrain.Storage is null )
+				continue;
+
+			if ( ignoredObjects.Any( go => go.IsValid() && terrain.GameObject.IsAncestor( go ) ) )
+				continue;
+
+			if ( !terrain.RayIntersects( Gizmo.CurrentRay, Gizmo.RayDepth, out var localHitPosition ) )
+				continue;
+
+			var worldHitPosition = terrain.WorldTransform.PointToWorld( localHitPosition );
+			var distance = Vector3.DistanceBetween( Gizmo.CurrentRay.Position, worldHitPosition );
+			if ( distance >= bestDistance )
+				continue;
+
+			bestDistance = distance;
+			hitPosition = worldHitPosition;
+			hitNormal = GetTerrainNormal( terrain, localHitPosition );
+		}
+
+		return bestDistance < float.MaxValue;
+	}
+
+	private Vector3 GetSurfaceSnapTarget( Vector3 hitPosition, Vector3 hitNormal )
+	{
+		if ( !hasStartBounds )
+			return hitPosition;
+
+		var minAlongNormal = startBounds.Corners.Min( corner => Vector3.Dot( corner - handlePosition, hitNormal ) );
+		var surfaceDistance = MathF.Max( 0.0f, -minAlongNormal );
+
+		return hitPosition + hitNormal * surfaceDistance;
+	}
+
+	private static Vector3 GetTerrainNormal( Terrain terrain, Vector3 localHitPosition )
+	{
+		var storage = terrain.Storage;
+		var resolution = storage.Resolution;
+		var sizeScale = storage.TerrainSize / resolution;
+
+		var x = (int)MathF.Floor( localHitPosition.x / storage.TerrainSize * resolution );
+		var y = (int)MathF.Floor( localHitPosition.y / storage.TerrainSize * resolution );
+
+		float SampleHeight( int sampleX, int sampleY )
+		{
+			sampleX = Math.Clamp( sampleX, 0, resolution - 1 );
+			sampleY = Math.Clamp( sampleY, 0, resolution - 1 );
+			return storage.HeightMap[sampleX + sampleY * resolution] / (float)ushort.MaxValue * storage.TerrainHeight;
+		}
+
+		var heightLeft = SampleHeight( x - 1, y );
+		var heightRight = SampleHeight( x + 1, y );
+		var heightDown = SampleHeight( x, y - 1 );
+		var heightUp = SampleHeight( x, y + 1 );
+
+		var localNormal = new Vector3(
+			-(heightRight - heightLeft) / (sizeScale * 2.0f),
+			-(heightUp - heightDown) / (sizeScale * 2.0f),
+			1.0f ).Normal;
+
+		return terrain.WorldTransform.NormalToWorld( localNormal );
 	}
 
 	private void StartDrag( IEnumerable<GameObject> selectedGos )
@@ -105,6 +230,33 @@ public class PositionEditorTool : EditorTool
 		{
 			startPoints[entry] = entry.WorldTransform;
 		}
+
+		hasStartBounds = TryGetSelectionBounds( startPoints.Keys, out startBounds );
+	}
+
+	private static bool TryGetSelectionBounds( IEnumerable<GameObject> gameObjects, out BBox bounds )
+	{
+		bool hasBounds = false;
+		bounds = default;
+
+		foreach ( var go in gameObjects )
+		{
+			if ( !go.IsValid() )
+				continue;
+
+			var goBounds = go.GetBounds();
+			if ( !hasBounds )
+			{
+				bounds = goBounds;
+				hasBounds = true;
+			}
+			else
+			{
+				bounds = bounds.AddBBox( goBounds );
+			}
+		}
+
+		return hasBounds;
 	}
 
 	private void OnMoveObject( GameObject gameObject, Transform transform )
@@ -139,3 +291,11 @@ public class PositionEditorTool : EditorTool
 	}
 }
 
+internal static class SurfaceSnapSettings
+{
+	public static bool Enabled
+	{
+		get => EditorCookie.Get( "SceneView.SurfaceSnap", false );
+		set => EditorCookie.Set( "SceneView.SurfaceSnap", value );
+	}
+}

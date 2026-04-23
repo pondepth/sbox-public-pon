@@ -304,12 +304,12 @@ public class PathWidget : Widget
 				return;
 			}
 
-			ev.Action = ev.HasCtrl ? DropAction.Copy : DropAction.Move;
+			ev.Action = ev.HasCtrl ? DropAction.Move : DropAction.Copy;
 		}
 
 		public override void OnDragDrop( DragEvent ev )
 		{
-			ev.Action = ev.HasCtrl ? DropAction.Copy : DropAction.Move;
+			ev.Action = ev.HasCtrl ? DropAction.Move : DropAction.Copy;
 
 			foreach ( var file in ev.Data.Files )
 			{
@@ -324,9 +324,15 @@ public class PathWidget : Widget
 
 					if ( Directory.Exists( file ) )
 					{
-						// Move Directory
-						EditorUtility.RenameDirectory( file, destinationFile );
-						DirectoryEntry.RenameMetadata( file, destinationFile );
+						if ( ev.Action == DropAction.Copy )
+							DroppedAssetRegistration.CopyDirectory( file, destinationFile );
+						else
+						{
+							EditorUtility.RenameDirectory( file, destinationFile );
+							DirectoryEntry.RenameMetadata( file, destinationFile );
+						}
+
+						DroppedAssetRegistration.Register( destinationFile );
 					}
 					else
 					{
@@ -338,6 +344,8 @@ public class PathWidget : Widget
 							File.Copy( file, destinationFile );
 						else
 							File.Move( file, destinationFile );
+
+						DroppedAssetRegistration.Register( destinationFile );
 					}
 				}
 				else

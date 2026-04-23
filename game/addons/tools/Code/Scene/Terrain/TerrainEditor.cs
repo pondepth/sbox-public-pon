@@ -76,6 +76,13 @@ public class TerrainEditorTool : EditorTool
 			group.Add( opacityRow );
 		}
 
+		if ( CurrentTool is RaiseLowerTool raiseLowerTool )
+		{
+			var group = sidebar.AddGroup( "Raise / Lower" );
+			var so = raiseLowerTool.GetSerialized();
+			group.Add( ControlSheetRow.Create( so.GetProperty( nameof( RaiseLowerTool.RandomBrushRotation ) ) ) );
+		}
+
 		// Active Layer
 		{
 			var group = sidebar.AddGroup( "Active Layer" );
@@ -177,7 +184,7 @@ public class TerrainEditorTool : EditorTool
 		row.ControlWidget.ToolTip = tip;
 	}
 
-	public void DrawBrushPreview( Transform transform )
+	public void DrawBrushPreview( Transform transform, float brushRotation = 0.0f )
 	{
 		_previewObject ??= new BrushPreviewSceneObject( Gizmo.World ); // Not cached, FindOrCreate is internal :x
 
@@ -192,6 +199,7 @@ public class TerrainEditorTool : EditorTool
 		_previewObject.Bounds = BBox.FromPositionAndSize( 0, float.MaxValue );
 		_previewObject.Transform = transform;
 		_previewObject.Radius = BrushSettings.Size;
+		_previewObject.BrushRotation = brushRotation;
 		_previewObject.Texture = Brush.Texture;
 		_previewObject.Color = color;
 	}

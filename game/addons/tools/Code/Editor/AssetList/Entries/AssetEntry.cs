@@ -20,6 +20,25 @@ public class AssetEntry : IAssetListEntry
 	public string AbsolutePath => Asset?.AbsolutePath ?? FileInfo.FullName;
 	public AssetType AssetType => Asset?.AssetType ?? null;
 
+	public Asset EnsureAssetRegistered()
+	{
+		if ( Asset is not null )
+			return Asset;
+
+		if ( !FileInfo.Exists )
+			return null;
+
+		var extension = Path.GetExtension( FileInfo.Name );
+		if ( string.IsNullOrWhiteSpace( extension ) )
+			return null;
+
+		if ( extension.Equals( ".meta", StringComparison.OrdinalIgnoreCase ) )
+			return null;
+
+		Asset = AssetSystem.RegisterFile( FileInfo.FullName );
+		return Asset;
+	}
+
 	public AssetEntry( Asset asset ) : this( new FileInfo( asset.AbsolutePath ), asset )
 	{
 

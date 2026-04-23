@@ -76,6 +76,7 @@ PS
 	Texture2D g_tBrush < Attribute( "Brush" ); SrgbRead( false ); >;
 
 	float g_flRadius < Attribute( "Radius" ); Default( 16.0f ); >;
+	float g_flBrushRotation < Attribute( "BrushRotation" ); Default( 0.0f ); >;
 	float4 g_flColor < Attribute( "Color" ); >;
 
 	#define COLOR_WRITE_ALREADY_SET
@@ -138,6 +139,15 @@ PS
 		{
 			float3 localPos = i.DecalOrigin - vPositionWs;
 			float2 uv = float2( localPos.x, -localPos.y ) / ( 2 * g_flRadius ) - float2( 0.5, 0.5 );
+			if ( g_flBrushRotation != 0.0f )
+			{
+				float s, c;
+				sincos( g_flBrushRotation, s, c );
+				float2 centeredUv = uv + 0.5f;
+				uv = float2(
+					centeredUv.x * c - centeredUv.y * s,
+					centeredUv.x * s + centeredUv.y * c ) - 0.5f;
+			}
 
 			float opacity = g_tBrush.Sample( g_sBilinearWrap, uv ).r;
 			float4 color = float4( g_flColor.rgb, g_flColor.a * opacity );

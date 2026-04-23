@@ -62,6 +62,14 @@ partial class ViewportTools
 
 			AddToggleButton(
 				group.Layout,
+				"Surface Snap (Ctrl+Alt while moving)",
+				() => "vertical_align_bottom",
+				() => SurfaceSnapSettings.Enabled,
+				( v ) => SurfaceSnapSettings.Enabled = v
+			);
+
+			AddToggleButton(
+				group.Layout,
 				"Grid Snap",
 				() => "grid_on",
 				() => EditorScene.GizmoSettings.SnapToGrid,

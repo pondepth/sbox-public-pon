@@ -4,6 +4,7 @@ public class BrushPreviewSceneObject : SceneCustomObject
 {
 	public Texture Texture { get; set; }
 	public float Radius { get; set; } = 16.0f;
+	public float BrushRotation { get; set; }
 	public Color Color { get; set; } = Color.White;
 
 	public BrushPreviewSceneObject( SceneWorld world ) : base( world )
@@ -23,6 +24,7 @@ public class BrushPreviewSceneObject : SceneCustomObject
 		RenderAttributes attributes = new RenderAttributes();
 		attributes.Set( "Brush", Texture );
 		attributes.Set( "Radius", Radius );
+		attributes.Set( "BrushRotation", BrushRotation );
 		attributes.Set( "Color", Color );
 
 		Graphics.GrabDepthTexture( "DepthBuffer", attributes );
