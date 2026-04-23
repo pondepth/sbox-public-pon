@@ -8,6 +8,8 @@ partial class ModelDropObject : BaseDropObject
 	Model model;
 	string archetype;
 
+	protected override bool AlignToSurfaceNormal => false;
+
 	protected override async Task Initialize( string dragData, CancellationToken token )
 	{
 		Asset asset = await InstallAsset( dragData, token );

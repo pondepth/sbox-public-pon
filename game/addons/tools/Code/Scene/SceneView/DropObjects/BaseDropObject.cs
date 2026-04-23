@@ -19,6 +19,8 @@ public abstract class BaseDropObject
 
 	public bool IsInitialized { get; private set; }
 
+	protected virtual bool AlignToSurfaceNormal => true;
+
 	/// <summary>
 	/// Download/load asset
 	/// </summary>
@@ -134,7 +136,9 @@ public abstract class BaseDropObject
 
 	private Transform TraceTransform( Gizmo.SceneSettings settings )
 	{
-		var rot = Rotation.LookAt( trace.Normal, Vector3.Up ) * Rotation.From( 90, 0, 0 ) * Rotation;
+		var rot = AlignToSurfaceNormal
+			? Rotation.LookAt( trace.Normal, Vector3.Up ) * Rotation.From( 90, 0, 0 ) * Rotation
+			: Rotation;
 		var pos = trace.EndPosition;
 		if ( EditorPreferences.BoundsPlacement )
 		{
