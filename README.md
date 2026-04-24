@@ -10,9 +10,11 @@
 [Documentation]: https://sbox.game/dev/doc/
 [Contributing]: CONTRIBUTING.md
 
-# s&box
+# s&box custom pon edition
 
 s&box is a modern game engine, built on Valve's Source 2 and the latest .NET technology, it provides a modern intuitive editor for creating games.
+
+This is the Custom Pon Edition - basically my own version. I’m constantly fixing annoying bugs, cleaning up stuff in the engine that feels out of place, and adding my own tools.
 
 ![s&box editor](https://files.facepunch.com/matt/1b2211b1/sbox-dev_FoZ5NNZQTi.jpg)
 
