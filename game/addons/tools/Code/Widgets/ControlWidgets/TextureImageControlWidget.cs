@@ -157,6 +157,7 @@ public class TextureImageControlWidget : ControlWidget
 	private void UpdateFromAsset( Asset asset )
 	{
 		if ( asset is null ) return;
+		asset = TextureSourceUtility.GetOrCreateTextureAssetForImage( asset );
 
 		SerializedProperty.Parent.NoteStartEdit( SerializedProperty );
 		SerializedProperty.SetValue( asset.RelativePath );

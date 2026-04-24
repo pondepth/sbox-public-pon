@@ -79,15 +79,25 @@ public class TextureInspector : Widget, IAssetInspector
 
 		public static TextureFile CreateDefault( IEnumerable<string> images, bool noCompress = false )
 		{
+			var imageArray = images.ToArray();
+			var isHdr = imageArray.Any( x =>
+			{
+				var extension = System.IO.Path.GetExtension( x );
+
+				return extension.Equals( ".exr", StringComparison.OrdinalIgnoreCase )
+					|| extension.Equals( ".hdr", StringComparison.OrdinalIgnoreCase )
+					|| extension.Equals( ".pfm", StringComparison.OrdinalIgnoreCase );
+			} );
+
 			return new TextureFile
 			{
-				Sequences = [.. images.Select( x => new TextureSequence()
+				Sequences = [.. imageArray.Select( x => new TextureSequence()
 				{
 					Source = x,
 					IsLooping = true
 				} )],
 
-				OutputFormat = noCompress ? ImageFormatType.RGBA8888 : ImageFormatType.DXT5,
+				OutputFormat = isHdr ? ImageFormatType.BC6H : noCompress ? ImageFormatType.RGBA8888 : ImageFormatType.DXT5,
 				OutputColorSpace = GammaType.Linear,
 				OutputMipAlgorithm = MipAlgorithm.None,
 				InputColorSpace = GammaType.Linear,

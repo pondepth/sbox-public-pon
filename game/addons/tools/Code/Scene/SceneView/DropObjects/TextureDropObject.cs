@@ -2,7 +2,7 @@
 
 namespace Editor;
 
-[DropObject( "texture", "vtex", "vtex_c", "png", "jpg", "jpeg", "tga", "ies", "webp" )]
+[DropObject( "texture", "vtex", "vtex_c", "png", "jpg", "jpeg", "tga", "exr", "hdr", "pfm", "ies", "webp" )]
 partial class TextureDropObject : BaseDropObject
 {
 	Texture texture;

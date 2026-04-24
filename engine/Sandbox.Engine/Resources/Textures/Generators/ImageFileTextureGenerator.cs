@@ -154,10 +154,26 @@ public class ImageFileGenerator : TextureGenerator
 		if ( hash == _loadedCacheHash )
 			return _cacheLoaded?.Clone();
 
-		var bytes = await EngineFileSystem.Mounted.ReadAllBytesAsync( path );
+		var bitmap = default( Bitmap );
+
+		if ( Bitmap.IsHdrImagePath( path ) )
+		{
+			var fullPath = EngineFileSystem.Mounted.GetFullPath( path );
+			bitmap = Bitmap.CreateFromHdrFile( fullPath );
+		}
+		else
+		{
+			var bytes = await EngineFileSystem.Mounted.ReadAllBytesAsync( path );
+			bitmap = Bitmap.CreateFromBytes( bytes );
+		}
+
+		if ( bitmap is null )
+		{
+			Log.Warning( $"ImageFileGenerator could not load image file: {path}" );
+			return default;
+		}
 
 		// Create the bitmap and crop it if needed
-		var bitmap = Bitmap.CreateFromBytes( bytes );
 		var newRect = new Rect( Cropping.Left, Cropping.Top, bitmap.Width - Cropping.Right - Cropping.Left, bitmap.Height - Cropping.Bottom - Cropping.Top );
 		if ( newRect.Width > 0 && newRect.Height > 0 )
 		{

@@ -441,7 +441,7 @@ internal class SyncPublicRepo( string name, bool dryRun = false ) : Step( name )
 	private static readonly HashSet<string> ForbiddenRepoExtensions = new( StringComparer.OrdinalIgnoreCase )
 	{
 		".lib", ".exe", ".pdb", ".a", ".dll", ".dylib", ".so",
-		".png", ".tga", ".jpg", ".psd", ".pdf", ".bmp", ".gif", ".exr", ".ico", ".svg", ".tif", ".tiff",
+		".png", ".tga", ".jpg", ".psd", ".pdf", ".bmp", ".gif", ".exr", ".hdr", ".ico", ".svg", ".tif", ".tiff",
 		".ttf", ".otf",
 		".dmx", ".fbx", ".max",
 		".wav", ".ogg", ".mp3", ".mp4", ".webm", ".avi",

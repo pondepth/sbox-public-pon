@@ -14,6 +14,9 @@ internal static class Image
 		".tga",
 		".psd",
 		".tif",
+		".exr",
+		".hdr",
+		".pfm",
 		".ies",
 	};
 
@@ -149,6 +152,14 @@ internal static class Image
 			if ( extension == ".tga" || extension == ".psd" || extension == ".tif" )
 			{
 				tex = Load( filesystem, filename );
+			}
+			else if ( Bitmap.IsHdrImagePath( filename ) )
+			{
+				var fullPath = filesystem.GetFullPath( filename );
+				using var bitmap = Bitmap.CreateFromHdrFile( fullPath );
+
+				if ( bitmap is not null )
+					tex = bitmap.ToTexture();
 			}
 			else if ( extension == ".ies" )
 			{

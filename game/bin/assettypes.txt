@@ -824,6 +824,7 @@
 				"png",
 				"tga",
 				"exr",
+				"hdr",
 				"tiff",
 				"tif",
 				"psd",

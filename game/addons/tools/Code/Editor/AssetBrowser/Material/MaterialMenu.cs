@@ -112,26 +112,26 @@ internal static class MaterialMenu
 		// Try to work out what textures should go where using hacks and magic
 		//
 
-		string texColor = assetPeers.Where( x => x.Name.Contains( "_color" ) || x.Name.Contains( "_diff" ) ).Select( x => x.RelativePath ).FirstOrDefault();
-		texColor ??= asset.RelativePath; // Failing that, lets use whatever we have selected, since they most likely selected the color one right
+		string texColor = assetPeers.Where( x => x.Name.Contains( "_color" ) || x.Name.Contains( "_diff" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault();
+		texColor ??= TextureSourceUtility.GetOrCreateTextureAssetForImage( asset ).RelativePath; // Failing that, lets use whatever we have selected, since they most likely selected the color one right
 
-		string texNormal = assetPeers.Where( x => x.Name.Contains( "_nrm" ) || x.Name.Contains( "_normal" ) || x.Name.Contains( "_amb" ) ).Select( x => x.RelativePath ).FirstOrDefault( "materials/default/default_normal.tga" );
-		string texAo = assetPeers.Where( x => x.Name.Contains( "_ao" ) || x.Name.Contains( "_occ" ) || x.Name.Contains( "_amb" ) ).Select( x => x.RelativePath ).FirstOrDefault( "materials/default/default_ao.tga" );
-		string texRough = assetPeers.Where( x => x.Name.Contains( "_rough" ) ).Select( x => x.RelativePath ).FirstOrDefault( "materials/default/default_rough.tga" );
+		string texNormal = assetPeers.Where( x => x.Name.Contains( "_nrm" ) || x.Name.Contains( "_normal" ) || x.Name.Contains( "_amb" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault( "materials/default/default_normal.tga" );
+		string texAo = assetPeers.Where( x => x.Name.Contains( "_ao" ) || x.Name.Contains( "_occ" ) || x.Name.Contains( "_amb" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault( "materials/default/default_ao.tga" );
+		string texRough = assetPeers.Where( x => x.Name.Contains( "_rough" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault( "materials/default/default_rough.tga" );
 
-		string texMetallic = assetPeers.Where( x => x.Name.Contains( "_metallic" ) ).Select( x => x.RelativePath ).FirstOrDefault();
+		string texMetallic = assetPeers.Where( x => x.Name.Contains( "_metallic" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault();
 		if ( texMetallic != null )
 		{
 			texMetallic = $"\n	F_METALNESS_TEXTURE 1\n	F_SPECULAR 1\n	TextureMetalness \"{texMetallic}\"";
 		}
 
-		string texSelfIllum = assetPeers.Where( x => x.Name.Contains( "_selfillum" ) ).Select( x => x.RelativePath ).FirstOrDefault();
+		string texSelfIllum = assetPeers.Where( x => x.Name.Contains( "_selfillum" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault();
 		if ( texSelfIllum != null )
 		{
 			texSelfIllum = $"\n	F_SELF_ILLUM 1\n	TextureSelfIllumMask \"{texSelfIllum}\"";
 		}
 
-		string tintMask = assetPeers.Where( x => x.Name.Contains( "_mask" ) ).Select( x => x.RelativePath ).FirstOrDefault();
+		string tintMask = assetPeers.Where( x => x.Name.Contains( "_mask" ) ).Select( x => TextureSourceUtility.GetOrCreateTextureAssetForImage( x ).RelativePath ).FirstOrDefault();
 		if ( tintMask != null )
 		{
 			tintMask = $"\n	F_TINT_MASK 1\n	TextureTintMask \"{texSelfIllum}\"";
